@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trino Frontend</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/antd@5.8.0/dist/reset.css">
+    <script src="https://unpkg.com/dayjs@1.11.7/dayjs.min.js"></script>
+    <script src="https://unpkg.com/antd@5.8.0/dist/antd.min.js"></script>
+    <script src="https://unpkg.com/axios@1.4.0/dist/axios.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .app {
+            height: 100vh;
+            display: flex;
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: none;
+            border: 1px solid #d9d9d9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.1);
+        }
+
+        .sidebar {
+            width: 20%;
+            background-color: #f5f5f5;
+            border-right: 1px solid #d9d9d9;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .main-content {
+            width: 80%;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        .function-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .function-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #d9d9d9;
+            background-color: #fff;
+        }
+
+        .function-icon:hover {
+            background-color: #e6f7ff;
+            border-color: #1890ff;
+        }
+
+        .function-icon.active {
+            background-color: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        .tree-container {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .new-query-section {
+            margin-top: 20px;
+        }
+
+        .sql-editor {
+            width: 100%;
+            height: 400px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            padding: 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .table-details {
+            margin-top: 20px;
+        }
+
+        .ddl-container {
+            margin-top: 20px;
+        }
+
+        .ddl-text {
+            width: 100%;
+            height: 200px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+
+        /* Dark theme styles */
+        .app.dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .sidebar {
+            background-color: #2d2d2d;
+            border-right: 1px solid #404040;
+        }
+
+        .app.dark-theme .main-content {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .function-icon {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .function-icon:hover {
+            background-color: #3a3a3a;
+            border-color: #1890ff;
+        }
+
+        .app.dark-theme .function-icon.active {
+            background-color: #1890ff;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .theme-toggle {
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .theme-toggle:hover {
+            background-color: #3a3a3a;
+        }
+
+        .app.dark-theme .sql-editor {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .ddl-text {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .ant-typography {
+            color: #ffffff !important;
+        }
+
+        .app.dark-theme .ant-table {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .ant-table-thead > tr > th {
+            background-color: #3a3a3a;
+            color: #ffffff;
+            border-color: #404040;
+        }
+
+        .app.dark-theme .ant-table-tbody > tr > td {
+            background-color: #2d2d2d;
+            color: #ffffff;
+            border-color: #404040;
+        }
+
+        .app.dark-theme .ant-table-tbody > tr:hover > td {
+            background-color: #3a3a3a;
+        }
+
+        .app.dark-theme .ant-tree {
+            background-color: transparent;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .ant-tree .ant-tree-node-content-wrapper {
+            color: #ffffff;
+        }
+
+        .app.dark-theme .ant-tree .ant-tree-node-content-wrapper:hover {
+            background-color: #3a3a3a;
+        }
+
+        .app.dark-theme .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+            background-color: #1890ff;
+        }
+
+        .app.dark-theme .ant-tree .ant-tree-title {
+            color: #ffffff;
+        }
+
+        .app.dark-theme .ant-tree .ant-tree-switcher {
+            color: #ffffff;
+        }
+
+        .saved-tasks {
+            margin-top: 20px;
+            border-top: 1px solid #d9d9d9;
+            padding-top: 20px;
+        }
+
+        .app.dark-theme .saved-tasks {
+            border-top-color: #404040;
+        }
+
+        .task-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+
+        .task-item:hover {
+            background-color: #f0f0f0;
+            border-color: #1890ff;
+        }
+
+        .task-item.active {
+            background-color: #e6f7ff;
+            border-color: #1890ff;
+        }
+
+        .app.dark-theme .task-item {
+            background-color: #2d2d2d;
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        .app.dark-theme .task-item:hover {
+            background-color: #3a3a3a;
+            border-color: #1890ff;
+        }
+
+        .app.dark-theme .task-item.active {
+            background-color: #1890ff;
+            border-color: #1890ff;
+        }
+
+        .task-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .app.dark-theme .task-date {
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Button, Modal, Form, Input, Tree, Table, Typography, message } = window.antd;
+        const { Title, Text } = Typography;
+        const { TextArea } = Input;
+
+        // Mock API服务
+        const trinoService = {
+            getCatalogs: async () => {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return ['information_schema', 'system', 'hive', 'mysql'];
+            },
+            getSchemas: async (catalogName) => {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                return ['default', 'information_schema'];
+            },
+            getTables: async (catalogName, schemaName) => {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                return ['users', 'orders', 'products'];
+            },
+            getTableDetails: async (catalogName, schemaName, tableName) => {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                return {
+                    columns: [
+                        { name: 'id', type: 'bigint', comment: '主键ID' },
+                        { name: 'name', type: 'varchar(255)', comment: '名称' },
+                        { name: 'email', type: 'varchar(255)', comment: '邮箱地址' },
+                        { name: 'created_at', type: 'timestamp', comment: '创建时间' }
+                    ],
+                    ddl: `CREATE TABLE ${catalogName}.${schemaName}.${tableName} (
+  id bigint,
+  name varchar(255),
+  email varchar(255),
+  created_at timestamp
+) WITH (
+  format = 'PARQUET'
+);`
+                };
+            }
+        };
+
+        // 元数据查询组件
+        const MetadataQuery = ({ onTableSelect }) => {
+            const [treeData, setTreeData] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [expandedKeys, setExpandedKeys] = useState([]);
+            const [selectedKeys, setSelectedKeys] = useState([]);
+
+            useEffect(() => {
+                loadCatalogs();
+            }, []);
+
+            const loadCatalogs = async () => {
+                setLoading(true);
+                try {
+                    const catalogs = await trinoService.getCatalogs();
+                    const catalogNodes = catalogs.map(catalog => ({
+                        title: catalog,
+                        key: `catalog-${catalog}`,
+                        icon: React.createElement('span', { style: { color: '#1890ff' } }, '🗄️'),
+                        children: [],
+                        isLeaf: false,
+                        type: 'catalog',
+                        catalogName: catalog
+                    }));
+                    setTreeData(catalogNodes);
+                } catch (error) {
+                    message.error('加载Catalog失败');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const onLoadData = async (treeNode) => {
+                const { key, type, catalogName, schemaName } = treeNode;
+                
+                if (type === 'catalog') {
+                    const schemas = await trinoService.getSchemas(catalogName);
+                    const schemaNodes = schemas.map(schema => ({
+                        title: schema,
+                        key: `schema-${catalogName}-${schema}`,
+                        icon: React.createElement('span', { style: { color: '#52c41a' } }, '📁'),
+                        children: [],
+                        isLeaf: false,
+                        type: 'schema',
+                        catalogName,
+                        schemaName: schema
+                    }));
+                    setTreeData(updateTreeData(treeData, key, schemaNodes));
+                } else if (type === 'schema') {
+                    const tables = await trinoService.getTables(catalogName, schemaName);
+                    const tableNodes = tables.map(table => ({
+                        title: table,
+                        key: `table-${catalogName}-${schemaName}-${table}`,
+                        icon: React.createElement('span', { style: { color: '#fa8c16' } }, '📋'),
+                        isLeaf: true,
+                        type: 'table',
+                        catalogName,
+                        schemaName,
+                        tableName: table
+                    }));
+                    setTreeData(updateTreeData(treeData, key, tableNodes));
+                }
+            };
+
+            const updateTreeData = (list, key, children) => {
+                return list.map(node => {
+                    if (node.key === key) {
+                        return { ...node, children };
+                    }
+                    if (node.children) {
+                        return { ...node, children: updateTreeData(node.children, key, children) };
+                    }
+                    return node;
+                });
+            };
+
+            const onSelect = async (keys, info) => {
+                if (keys.length === 0) return;
+                
+                const selectedNode = info.node;
+                if (selectedNode.type === 'table') {
+                    try {
+                        const tableDetails = await trinoService.getTableDetails(
+                            selectedNode.catalogName,
+                            selectedNode.schemaName,
+                            selectedNode.tableName
+                        );
+                        
+                        onTableSelect({
+                            catalog: selectedNode.catalogName,
+                            schema: selectedNode.schemaName,
+                            table: selectedNode.tableName,
+                            details: tableDetails
+                        });
+                    } catch (error) {
+                        message.error('加载表详情失败');
+                    }
+                }
+                
+                setSelectedKeys(keys);
+            };
+
+            const onExpand = (keys) => {
+                setExpandedKeys(keys);
+            };
+
+            return React.createElement(Tree, {
+                showIcon: true,
+                loadData: onLoadData,
+                treeData: treeData,
+                onSelect: onSelect,
+                onExpand: onExpand,
+                expandedKeys: expandedKeys,
+                selectedKeys: selectedKeys
+            });
+        };
+
+        // 异构查询组件
+        const HeterogeneousQuery = ({ onNewTask }) => {
+            const [isModalVisible, setIsModalVisible] = useState(false);
+            const [form] = Form.useForm();
+
+            const showModal = () => {
+                setIsModalVisible(true);
+            };
+
+            const handleOk = async () => {
+                try {
+                    const values = await form.validateFields();
+                    onNewTask({ taskName: values.taskName });
+                    setIsModalVisible(false);
+                    form.resetFields();
+                    message.success('新查询任务创建成功');
+                } catch (error) {
+                    message.error('请填写任务名称');
+                }
+            };
+
+            const handleCancel = () => {
+                setIsModalVisible(false);
+                form.resetFields();
+            };
+
+            return React.createElement(React.Fragment, null,
+                React.createElement(Button, {
+                    type: "primary",
+                    onClick: showModal,
+                    style: { width: '100%' }
+                }, "➕ 新建查询任务"),
+                
+                React.createElement(Modal, {
+                    title: "新建查询任务",
+                    open: isModalVisible,
+                    onOk: handleOk,
+                    onCancel: handleCancel,
+                    okText: "创建",
+                    cancelText: "取消"
+                },
+                    React.createElement(Form, {
+                        form: form,
+                        layout: "vertical"
+                    },
+                        React.createElement(Form.Item, {
+                            label: "任务名称",
+                            name: "taskName",
+                            rules: [{ required: true, message: '请输入任务名称' }]
+                        },
+                            React.createElement(Input, {
+                                placeholder: "请输入任务名称"
+                            })
+                        )
+                    )
+                )
+            );
+        };
+
+        // 主应用组件
+        const App = () => {
+            const [activeFunction, setActiveFunction] = useState('metadata');
+            const [selectedTable, setSelectedTable] = useState(null);
+            const [currentTask, setCurrentTask] = useState(null);
+            const [sql, setSql] = useState('');
+            const [isDarkTheme, setIsDarkTheme] = useState(false);
+            const [savedTasks, setSavedTasks] = useState([]);
+
+            const handleFunctionChange = (functionName) => {
+                setActiveFunction(functionName);
+            };
+
+            const handleTableSelect = (tableInfo) => {
+                setSelectedTable(tableInfo);
+            };
+
+            const handleNewTask = (taskInfo) => {
+                const newTask = {
+                    ...taskInfo,
+                    id: Date.now().toString(),
+                    createdAt: new Date().toLocaleString('zh-CN'),
+                    sql: ''
+                };
+                setSavedTasks([...savedTasks, newTask]);
+                setCurrentTask(newTask);
+                setSql('');
+            };
+
+            const handleSqlChange = (e) => {
+                setSql(e.target.value);
+                if (currentTask) {
+                    const updatedTasks = savedTasks.map(task => 
+                        task.id === currentTask.id ? { ...task, sql: e.target.value } : task
+                    );
+                    setSavedTasks(updatedTasks);
+                    setCurrentTask({ ...currentTask, sql: e.target.value });
+                }
+            };
+
+            const toggleTheme = () => {
+                setIsDarkTheme(!isDarkTheme);
+            };
+
+            const handleTaskSelect = (task) => {
+                setCurrentTask(task);
+                setSql(task.sql);
+            };
+
+            const renderTableDetails = () => {
+                if (!selectedTable) {
+                    return React.createElement('div', null,
+                        React.createElement(Title, { level: 2 }, '表详情'),
+                        React.createElement(Text, null, '请从左侧选择表以查看详细信息')
+                    );
+                }
+
+                const columns = [
+                    { title: '字段名', dataIndex: 'name', key: 'name' },
+                    { title: '类型', dataIndex: 'type', key: 'type' },
+                    { title: '注释', dataIndex: 'comment', key: 'comment' }
+                ];
+
+                const dataSource = selectedTable.details.columns.map((col, index) => ({
+                    ...col,
+                    key: index
+                }));
+
+                return React.createElement('div', null,
+                    React.createElement(Title, { level: 2 }, 
+                        `${selectedTable.catalog}.${selectedTable.schema}.${selectedTable.table}`
+                    ),
+                    React.createElement(Title, { level: 3 }, '字段信息'),
+                    React.createElement(Table, {
+                        dataSource: dataSource,
+                        columns: columns,
+                        pagination: false,
+                        size: "middle"
+                    }),
+                    React.createElement(Title, { level: 3, style: { marginTop: '20px' } }, '建表语句'),
+                    React.createElement(TextArea, {
+                        value: selectedTable.details.ddl,
+                        readOnly: true,
+                        rows: 10,
+                        className: "ddl-text"
+                    })
+                );
+            };
+
+            const renderQueryInterface = () => {
+                if (!currentTask) {
+                    return React.createElement('div', null,
+                        React.createElement(Title, { level: 2 }, 'SQL查询'),
+                        React.createElement(Text, null, '请创建新的查询任务')
+                    );
+                }
+
+                return React.createElement('div', null,
+                    React.createElement(Title, { level: 2 }, `查询任务: ${currentTask.taskName}`),
+                    React.createElement(Title, { level: 3 }, 'SQL编辑器'),
+                    React.createElement('textarea', {
+                        value: sql,
+                        onChange: handleSqlChange,
+                        placeholder: "请输入SQL查询语句...",
+                        className: "sql-editor"
+                    })
+                );
+            };
+
+            return React.createElement('div', { className: `app ${isDarkTheme ? 'dark-theme' : ''}` },
+                React.createElement('button', {
+                    className: 'theme-toggle',
+                    onClick: toggleTheme,
+                    title: isDarkTheme ? '切换到白天模式' : '切换到黑夜模式'
+                }, isDarkTheme ? '☀️' : '🌙'),
+                React.createElement('div', { className: 'sidebar' },
+                    React.createElement('div', { className: 'function-icons' },
+                        React.createElement('div', {
+                            className: `function-icon ${activeFunction === 'metadata' ? 'active' : ''}`,
+                            onClick: () => handleFunctionChange('metadata')
+                        },
+                            React.createElement('span', { style: { fontSize: '18px' } }, '🗄️'),
+                            React.createElement('span', null, '元数据查询')
+                        ),
+                        React.createElement('div', {
+                            className: `function-icon ${activeFunction === 'query' ? 'active' : ''}`,
+                            onClick: () => handleFunctionChange('query')
+                        },
+                            React.createElement('span', { style: { fontSize: '18px' } }, '🔍'),
+                            React.createElement('span', null, '异构查询')
+                        )
+                    ),
+                    
+                    activeFunction === 'metadata' && React.createElement('div', { className: 'tree-container' },
+                        React.createElement(MetadataQuery, { onTableSelect: handleTableSelect })
+                    ),
+                    
+                    activeFunction === 'query' && React.createElement('div', { className: 'new-query-section' },
+                        React.createElement(HeterogeneousQuery, { onNewTask: handleNewTask }),
+                        savedTasks.length > 0 && React.createElement('div', { className: 'saved-tasks' },
+                            React.createElement('h4', { style: { margin: '0 0 15px 0', fontSize: '14px' } }, '已保存的任务'),
+                            savedTasks.map(task => 
+                                React.createElement('div', {
+                                    key: task.id,
+                                    className: `task-item ${currentTask && currentTask.id === task.id ? 'active' : ''}`,
+                                    onClick: () => handleTaskSelect(task)
+                                },
+                                    React.createElement('div', { className: 'task-name' }, task.taskName),
+                                    React.createElement('div', { className: 'task-date' }, task.createdAt)
+                                )
+                            )
+                        )
+                    )
+                ),
+                
+                React.createElement('div', { className: 'main-content' },
+                    activeFunction === 'metadata' && renderTableDetails(),
+                    activeFunction === 'query' && renderQueryInterface()
+                )
+            );
+        };
+
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>
