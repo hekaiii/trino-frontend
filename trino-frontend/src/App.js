@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { DatabaseOutlined, SearchOutlined } from '@ant-design/icons';
-import { Table, Typography, Input } from 'antd';
+import { DatabaseOutlined, SearchOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
+import { Table, Typography, Input, Button } from 'antd';
 import MetadataQuery from './components/MetadataQuery';
 import HeterogeneousQuery from './components/HeterogeneousQuery';
 
@@ -12,6 +12,7 @@ const App = () => {
   const [selectedTable, setSelectedTable] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
   const [sql, setSql] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const handleTableSelect = (event) => {
@@ -38,6 +39,11 @@ const App = () => {
 
   const handleSqlChange = (e) => {
     setSql(e.target.value);
+  };
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.body.classList.toggle('dark-mode', !darkMode);
   };
 
   const renderTableDetails = () => {
@@ -125,40 +131,53 @@ const App = () => {
 
   return (
     <div className="app">
-      <div className="sidebar">
-        <div className="function-icons">
-          <div 
-            className={`function-icon ${activeFunction === 'metadata' ? 'active' : ''}`}
-            onClick={() => handleFunctionChange('metadata')}
-          >
-            <DatabaseOutlined style={{ fontSize: '18px' }} />
-            <span>元数据查询</span>
+      <div className="app-layout">
+        <div className="sidebar">
+          <div className="function-icons">
+            <div 
+              className={`function-icon ${activeFunction === 'metadata' ? 'active' : ''}`}
+              onClick={() => handleFunctionChange('metadata')}
+            >
+              <DatabaseOutlined style={{ fontSize: '18px' }} />
+              <span>异构数据源</span>
+            </div>
+            <div 
+              className={`function-icon ${activeFunction === 'query' ? 'active' : ''}`}
+              onClick={() => handleFunctionChange('query')}
+            >
+              <SearchOutlined style={{ fontSize: '18px' }} />
+              <span>异构查询</span>
+            </div>
           </div>
-          <div 
-            className={`function-icon ${activeFunction === 'query' ? 'active' : ''}`}
-            onClick={() => handleFunctionChange('query')}
-          >
-            <SearchOutlined style={{ fontSize: '18px' }} />
-            <span>异构查询</span>
-          </div>
+          
+          {activeFunction === 'metadata' && (
+            <div className="tree-container">
+              <MetadataQuery />
+            </div>
+          )}
+          
+          {activeFunction === 'query' && (
+            <div className="new-query-section">
+              <HeterogeneousQuery />
+            </div>
+          )}
         </div>
         
-        {activeFunction === 'metadata' && (
-          <div className="tree-container">
-            <MetadataQuery />
+        <div className="main-content">
+          <div className="main-header">
+            <Button 
+              type="text" 
+              icon={darkMode ? <SunOutlined /> : <MoonOutlined />} 
+              onClick={toggleDarkMode}
+              className="theme-toggle"
+              size="large"
+            />
           </div>
-        )}
-        
-        {activeFunction === 'query' && (
-          <div className="new-query-section">
-            <HeterogeneousQuery />
+          <div className="main-body">
+            {activeFunction === 'metadata' && renderTableDetails()}
+            {activeFunction === 'query' && renderQueryInterface()}
           </div>
-        )}
-      </div>
-      
-      <div className="main-content">
-        {activeFunction === 'metadata' && renderTableDetails()}
-        {activeFunction === 'query' && renderQueryInterface()}
+        </div>
       </div>
     </div>
   );

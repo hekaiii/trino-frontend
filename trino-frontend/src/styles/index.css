@@ -21,19 +21,49 @@ code {
   display: flex;
 }
 
+.app-layout {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
 .sidebar {
-  width: 20%;
+  width: 20%; /* 1/5 比例 */
+  height: 100%;
   background-color: #f5f5f5;
-  border-right: 1px solid #d9d9d9;
   display: flex;
   flex-direction: column;
   padding: 20px;
+  border-right: 1px solid #d9d9d9;
 }
 
 .main-content {
-  width: 80%;
+  width: 80%; /* 4/5 比例 */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.main-body {
+  flex: 1;
   padding: 20px;
   overflow: auto;
+}
+
+.theme-toggle {
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: #f0f0f0;
 }
 
 .function-icons {
@@ -69,8 +99,83 @@ code {
 .tree-container {
   flex: 1;
   overflow: auto;
+  min-height: 500px; /* 确保有足够高度显示所有数据源 */
+  max-height: 80vh; /* 最大高度为视口高度的80% */
 }
 
 .new-query-section {
   margin-top: 20px;
+}
+
+/* 暗黑模式样式 */
+body.dark-mode {
+  background-color: #141414;
+  color: #fff;
+}
+
+body.dark-mode .app {
+  background-color: #141414;
+}
+
+body.dark-mode .sidebar {
+  background-color: #1f1f1f;
+  border-right-color: #434343;
+}
+
+body.dark-mode .main-header {
+  background-color: #141414;
+  border-bottom-color: #434343;
+}
+
+body.dark-mode .main-body {
+  background-color: #141414;
+}
+
+body.dark-mode .function-icon {
+  background-color: #262626;
+  border-color: #434343;
+  color: #fff;
+}
+
+body.dark-mode .function-icon:hover {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+body.dark-mode .function-icon.active {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+body.dark-mode .theme-toggle:hover {
+  background-color: #434343;
+}
+
+body.dark-mode .ant-table {
+  background-color: #262626;
+}
+
+body.dark-mode .ant-table-thead > tr > th {
+  background-color: #1f1f1f;
+  border-bottom-color: #434343;
+  color: #fff;
+}
+
+body.dark-mode .ant-table-tbody > tr > td {
+  border-bottom-color: #434343;
+  color: #fff;
+}
+
+body.dark-mode .ant-table-tbody > tr:hover > td {
+  background-color: #434343;
+}
+
+body.dark-mode .ant-input {
+  background-color: #262626;
+  border-color: #434343;
+  color: #fff;
+}
+
+body.dark-mode .ant-typography {
+  color: #fff;
 }

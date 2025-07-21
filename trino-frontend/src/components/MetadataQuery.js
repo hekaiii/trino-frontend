@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Tree, Spin, message } from 'antd';
-import { DatabaseOutlined, TableOutlined, FolderOutlined } from '@ant-design/icons';
+import { 
+  DatabaseOutlined, 
+  TableOutlined, 
+  FolderOutlined,
+  CloudOutlined,
+  HddOutlined,
+  SearchOutlined,
+  InfoCircleOutlined,
+  SettingOutlined,
+  FileOutlined,
+  ThunderboltOutlined,
+  ApartmentOutlined,
+  ClusterOutlined
+} from '@ant-design/icons';
 import { getCatalogs, getSchemas, getTables, getTableDetails } from '../services/trinoService';
 
 const MetadataQuery = () => {
@@ -8,6 +21,26 @@ const MetadataQuery = () => {
   const [loading, setLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
+
+  // 获取数据源类型对应的图标
+  const getDataSourceIcon = (catalogName) => {
+    const iconMap = {
+      'mysql': <DatabaseOutlined style={{ color: '#00758F' }} />,
+      'postgresql': <DatabaseOutlined style={{ color: '#336791' }} />,
+      'oracle': <DatabaseOutlined style={{ color: '#F80000' }} />,
+      'sqlserver': <DatabaseOutlined style={{ color: '#CC2927' }} />,
+      'mongodb': <FileOutlined style={{ color: '#4DB33D' }} />,
+      'elasticsearch': <SearchOutlined style={{ color: '#005571' }} />,
+      'redis': <ThunderboltOutlined style={{ color: '#DC382D' }} />,
+      'kafka': <ApartmentOutlined style={{ color: '#231F20' }} />,
+      'hdfs': <HddOutlined style={{ color: '#FF6900' }} />,
+      's3': <CloudOutlined style={{ color: '#FF9900' }} />,
+      'hive': <ClusterOutlined style={{ color: '#FDEE21' }} />,
+      'system': <SettingOutlined style={{ color: '#722ED1' }} />,
+      'information_schema': <InfoCircleOutlined style={{ color: '#1890FF' }} />
+    };
+    return iconMap[catalogName] || <DatabaseOutlined />;
+  };
 
   useEffect(() => {
     loadCatalogs();
@@ -20,7 +53,7 @@ const MetadataQuery = () => {
       const catalogNodes = catalogs.map(catalog => ({
         title: catalog,
         key: `catalog-${catalog}`,
-        icon: <DatabaseOutlined />,
+        icon: getDataSourceIcon(catalog),
         children: [],
         isLeaf: false,
         type: 'catalog'
@@ -76,10 +109,12 @@ const MetadataQuery = () => {
     
     if (type === 'catalog') {
       const schemas = await loadSchemas(catalogName || treeNode.title);
-      return updateTreeData(treeData, key, schemas);
+      const newTreeData = updateTreeData(treeData, key, schemas);
+      setTreeData(newTreeData);
     } else if (type === 'schema') {
       const tables = await loadTables(catalogName, schemaName);
-      return updateTreeData(treeData, key, tables);
+      const newTreeData = updateTreeData(treeData, key, tables);
+      setTreeData(newTreeData);
     }
   };
 
