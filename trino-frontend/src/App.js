@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { DatabaseOutlined, SearchOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
-import { Table, Typography, Input, Button } from 'antd';
+import { DatabaseOutlined, SearchOutlined, SunOutlined, MoonOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Table, Typography, Input, Button, message } from 'antd';
 import MetadataQuery from './components/MetadataQuery';
 import HeterogeneousQuery from './components/HeterogeneousQuery';
+import Login from './components/Login';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [activeFunction, setActiveFunction] = useState('metadata');
   const [selectedTable, setSelectedTable] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
@@ -45,6 +48,25 @@ const App = () => {
     setDarkMode(!darkMode);
     document.body.classList.toggle('dark-mode', !darkMode);
   };
+
+  const handleLogin = (username) => {
+    setIsLoggedIn(true);
+    setCurrentUser(username);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    setActiveFunction('metadata');
+    setSelectedTable(null);
+    setCurrentTask(null);
+    setSql('');
+    message.success('已退出登录');
+  };
+
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   const renderTableDetails = () => {
     if (!selectedTable) {
@@ -165,13 +187,28 @@ const App = () => {
         
         <div className="main-content">
           <div className="main-header">
-            <Button 
-              type="text" 
-              icon={darkMode ? <SunOutlined /> : <MoonOutlined />} 
-              onClick={toggleDarkMode}
-              className="theme-toggle"
-              size="large"
-            />
+            <div className="header-left">
+              <span>欢迎，{currentUser}</span>
+            </div>
+            <div className="header-right">
+              <Button 
+                type="text" 
+                icon={darkMode ? <SunOutlined /> : <MoonOutlined />} 
+                onClick={toggleDarkMode}
+                className="theme-toggle"
+                size="large"
+              />
+              <Button 
+                type="text" 
+                icon={<LogoutOutlined />} 
+                onClick={handleLogout}
+                className="logout-btn"
+                size="large"
+                style={{ marginLeft: 8 }}
+              >
+                退出
+              </Button>
+            </div>
           </div>
           <div className="main-body">
             {activeFunction === 'metadata' && renderTableDetails()}

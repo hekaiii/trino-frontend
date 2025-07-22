@@ -46,9 +46,31 @@ code {
 
 .main-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding: 10px 20px;
   border-bottom: 1px solid #d9d9d9;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: #666;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.logout-btn {
+  color: #ff4d4f;
+}
+
+.logout-btn:hover {
+  color: #ff7875;
+  background-color: rgba(255, 77, 79, 0.1);
 }
 
 .main-body {
@@ -109,73 +131,177 @@ code {
 
 /* 暗黑模式样式 */
 body.dark-mode {
-  background-color: #141414;
-  color: #fff;
+  background-color: #1a1a1a;
+  color: #e8e8e8;
 }
 
 body.dark-mode .app {
-  background-color: #141414;
+  background-color: #1a1a1a;
 }
 
 body.dark-mode .sidebar {
-  background-color: #1f1f1f;
-  border-right-color: #434343;
+  background-color: #2d2d2d;
+  border-right-color: #404040;
 }
 
 body.dark-mode .main-header {
-  background-color: #141414;
-  border-bottom-color: #434343;
+  background-color: #1a1a1a;
+  border-bottom-color: #404040;
 }
 
 body.dark-mode .main-body {
-  background-color: #141414;
+  background-color: #1a1a1a;
 }
 
 body.dark-mode .function-icon {
-  background-color: #262626;
-  border-color: #434343;
-  color: #fff;
+  background-color: #3a3a3a;
+  border-color: #505050;
+  color: #e8e8e8;
 }
 
 body.dark-mode .function-icon:hover {
-  background-color: #1890ff;
-  border-color: #1890ff;
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+  color: #ffffff;
 }
 
 body.dark-mode .function-icon.active {
-  background-color: #1890ff;
-  border-color: #1890ff;
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+  color: #ffffff;
 }
 
 body.dark-mode .theme-toggle:hover {
-  background-color: #434343;
+  background-color: #404040;
+}
+
+body.dark-mode .theme-toggle {
+  color: #e8e8e8;
+}
+
+body.dark-mode .theme-toggle .anticon {
+  color: #e8e8e8;
 }
 
 body.dark-mode .ant-table {
-  background-color: #262626;
+  background-color: #2d2d2d;
 }
 
 body.dark-mode .ant-table-thead > tr > th {
-  background-color: #1f1f1f;
-  border-bottom-color: #434343;
-  color: #fff;
+  background-color: #3a3a3a;
+  border-bottom-color: #505050;
+  color: #e8e8e8;
 }
 
 body.dark-mode .ant-table-tbody > tr > td {
-  border-bottom-color: #434343;
-  color: #fff;
+  border-bottom-color: #505050;
+  color: #e8e8e8;
+  background-color: #2d2d2d;
 }
 
 body.dark-mode .ant-table-tbody > tr:hover > td {
-  background-color: #434343;
+  background-color: #404040;
 }
 
 body.dark-mode .ant-input {
-  background-color: #262626;
-  border-color: #434343;
-  color: #fff;
+  background-color: #3a3a3a;
+  border-color: #505050;
+  color: #e8e8e8;
+}
+
+body.dark-mode .ant-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 body.dark-mode .ant-typography {
-  color: #fff;
+  color: #e8e8e8;
+}
+
+/* 树组件暗黑模式样式 */
+body.dark-mode .ant-tree {
+  background-color: transparent;
+  color: #e8e8e8;
+}
+
+body.dark-mode .ant-tree .ant-tree-node-content-wrapper {
+  color: #e8e8e8;
+}
+
+body.dark-mode .ant-tree .ant-tree-node-content-wrapper:hover {
+  background-color: #404040;
+}
+
+body.dark-mode .ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected {
+  background-color: #4a90e2;
+  color: #ffffff;
+}
+
+body.dark-mode .ant-tree .ant-tree-switcher {
+  color: #e8e8e8;
+}
+
+body.dark-mode .ant-tree .ant-tree-iconEle {
+  color: #e8e8e8;
+}
+
+/* 按钮暗黑模式样式 */
+body.dark-mode .ant-btn {
+  background-color: #3a3a3a;
+  border-color: #505050;
+  color: #e8e8e8;
+}
+
+body.dark-mode .ant-btn:hover {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+  color: #ffffff;
+}
+
+body.dark-mode .ant-btn-primary {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+body.dark-mode .ant-btn-primary:hover {
+  background-color: #5ba0f2;
+  border-color: #5ba0f2;
+}
+
+/* 输入框选中状态 */
+body.dark-mode .ant-input::placeholder {
+  color: #999999;
+}
+
+/* Spin 加载器 */
+body.dark-mode .ant-spin-dot-item {
+  background-color: #4a90e2;
+}
+
+/* 分割线 */
+body.dark-mode .ant-divider {
+  border-color: #505050;
+}
+
+/* 标题和文字 */
+body.dark-mode .ant-typography-title {
+  color: #e8e8e8;
+}
+
+body.dark-mode .ant-typography-text {
+  color: #cccccc;
+}
+
+/* 暗黑模式下的头部样式 */
+body.dark-mode .header-left {
+  color: #e8e8e8;
+}
+
+body.dark-mode .logout-btn {
+  color: #ff7875;
+}
+
+body.dark-mode .logout-btn:hover {
+  color: #ffa39e;
+  background-color: rgba(255, 120, 117, 0.1);
 }
