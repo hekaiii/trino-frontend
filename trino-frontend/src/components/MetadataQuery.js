@@ -14,13 +14,14 @@ import {
   ApartmentOutlined,
   ClusterOutlined
 } from '@ant-design/icons';
-import { getCatalogs, getSchemas, getTables, getTableDetails } from '../services/trinoService';
+import { getCatalogs, getSchemas, getTables, getTableDetails } from '../services/gravitinoService';
 
 const MetadataQuery = () => {
   const [treeData, setTreeData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
+  const [currentMetalake, setCurrentMetalake] = useState('default');
 
   // 获取数据源类型对应的图标
   const getDataSourceIcon = (catalogName) => {
@@ -49,7 +50,7 @@ const MetadataQuery = () => {
   const loadCatalogs = async () => {
     setLoading(true);
     try {
-      const catalogs = await getCatalogs();
+      const catalogs = await getCatalogs(currentMetalake);
       const catalogNodes = catalogs.map(catalog => ({
         title: catalog,
         key: `catalog-${catalog}`,
@@ -60,7 +61,8 @@ const MetadataQuery = () => {
       }));
       setTreeData(catalogNodes);
     } catch (error) {
-      message.error('加载Catalog失败');
+      console.error('Error loading catalogs:', error);
+      message.error(`加载Catalog失败: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -68,7 +70,7 @@ const MetadataQuery = () => {
 
   const loadSchemas = async (catalogName) => {
     try {
-      const schemas = await getSchemas(catalogName);
+      const schemas = await getSchemas(catalogName, currentMetalake);
       return schemas.map(schema => ({
         title: schema,
         key: `schema-${catalogName}-${schema}`,
@@ -80,14 +82,15 @@ const MetadataQuery = () => {
         schemaName: schema
       }));
     } catch (error) {
-      message.error(`加载Schema失败: ${catalogName}`);
+      console.error('Error loading schemas:', error);
+      message.error(`加载Schema失败: ${catalogName} - ${error.message}`);
       return [];
     }
   };
 
   const loadTables = async (catalogName, schemaName) => {
     try {
-      const tables = await getTables(catalogName, schemaName);
+      const tables = await getTables(catalogName, schemaName, currentMetalake);
       return tables.map(table => ({
         title: table,
         key: `table-${catalogName}-${schemaName}-${table}`,
@@ -99,7 +102,8 @@ const MetadataQuery = () => {
         tableName: table
       }));
     } catch (error) {
-      message.error(`加载Table失败: ${catalogName}.${schemaName}`);
+      console.error('Error loading tables:', error);
+      message.error(`加载Table失败: ${catalogName}.${schemaName} - ${error.message}`);
       return [];
     }
   };
@@ -139,7 +143,8 @@ const MetadataQuery = () => {
         const tableDetails = await getTableDetails(
           selectedNode.catalogName,
           selectedNode.schemaName,
-          selectedNode.tableName
+          selectedNode.tableName,
+          currentMetalake
         );
         
         const event = new CustomEvent('tableSelected', {
@@ -152,7 +157,8 @@ const MetadataQuery = () => {
         });
         window.dispatchEvent(event);
       } catch (error) {
-        message.error('加载表详情失败');
+        console.error('Error loading table details:', error);
+        message.error(`加载表详情失败: ${error.message}`);
       }
     }
     
