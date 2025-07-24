@@ -274,7 +274,7 @@ export const getTableDetails = async (catalogName, schemaName, tableName, metaLa
       comment: column.comment || ''
     })) || [];
 
-    const ddl = generateDDL(catalogName, schemaName, tableName, columns);
+    const ddl = generateDDL(catalogName, schemaName, tableName, columns, tableInfo.properties || {});
 
     return {
       columns,
@@ -308,7 +308,7 @@ export const getTableDetails = async (catalogName, schemaName, tableName, metaLa
   }
 };
 
-const generateDDL = (catalogName, schemaName, tableName, columns) => {
+const generateDDL = (catalogName, schemaName, tableName, columns, properties = {}) => {
   const columnDefinitions = columns.map(col => {
     let definition = `  ${col.name} ${col.type}`;
     if (col.comment) {
@@ -317,9 +317,22 @@ const generateDDL = (catalogName, schemaName, tableName, columns) => {
     return definition;
   }).join(',\n');
 
-  return `CREATE TABLE ${catalogName}.${schemaName}.${tableName} (
+  let ddl = `CREATE TABLE ${catalogName}.${schemaName}.${tableName} (
 ${columnDefinitions}
-);`;
+)`;
+
+  // 添加properties信息
+  if (properties && Object.keys(properties).length > 0) {
+    const propertiesLines = Object.entries(properties).map(([key, value]) => {
+      return `  '${key}' = '${value}'`;
+    }).join(',\n');
+    
+    ddl += `\nWITH (\n${propertiesLines}\n)`;
+  }
+
+  ddl += ';';
+  
+  return ddl;
 };
 
 export const getCatalogInfo = async (catalogName, metaLakeName = 'test') => {

@@ -298,14 +298,14 @@ const App = () => {
               onClick={() => handleFunctionChange('metadata')}
             >
               <DatabaseOutlined style={{ fontSize: '18px' }} />
-              <span>异构数据源</span>
+              <span>异构数据源管理</span>
             </div>
             <div 
               className={`function-icon ${activeFunction === 'query' ? 'active' : ''}`}
               onClick={() => handleFunctionChange('query')}
             >
               <SearchOutlined style={{ fontSize: '18px' }} />
-              <span>异构查询</span>
+              <span>异构数据源协同处理</span>
             </div>
           </div>
           
