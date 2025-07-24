@@ -21,7 +21,7 @@ const MetadataQuery = () => {
   const [loading, setLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState([]);
-  const [currentMetalake, setCurrentMetalake] = useState('default');
+  const [currentMetalake, setCurrentMetalake] = useState('test');
 
   // 获取数据源类型对应的图标
   const getDataSourceIcon = (catalogName) => {

@@ -63,7 +63,7 @@ export const getMetalakes = async () => {
 };
 
 // 调用真实Gravitino API获取catalogs
-export const getCatalogs = async (metaLakeName = 'default') => {
+export const getCatalogs = async (metaLakeName = 'test') => {
   try {
     console.log(`Fetching catalogs from Gravitino API for metalake: ${metaLakeName}`);
     
@@ -140,7 +140,7 @@ export const getCatalogs = async (metaLakeName = 'default') => {
 };
 
 
-export const getSchemas = async (catalogName, metaLakeName = 'default') => {
+export const getSchemas = async (catalogName, metaLakeName = 'test') => {
   try {
     console.log(`Fetching schemas for catalog: ${catalogName} from Gravitino API`);
     
@@ -196,7 +196,7 @@ export const getSchemas = async (catalogName, metaLakeName = 'default') => {
   }
 };
 
-export const getTables = async (catalogName, schemaName, metaLakeName = 'default') => {
+export const getTables = async (catalogName, schemaName, metaLakeName = 'test') => {
   try {
     console.log(`Fetching tables for catalog: ${catalogName}, schema: ${schemaName} from Gravitino API`);
     
@@ -252,7 +252,7 @@ export const getTables = async (catalogName, schemaName, metaLakeName = 'default
   }
 };
 
-export const getTableDetails = async (catalogName, schemaName, tableName, metaLakeName = 'default') => {
+export const getTableDetails = async (catalogName, schemaName, tableName, metaLakeName = 'test') => {
   try {
     console.log(`Fetching table details for: ${catalogName}.${schemaName}.${tableName} from Gravitino API`);
     const response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}/schemas/${schemaName}/tables/${tableName}`);
@@ -322,7 +322,7 @@ ${columnDefinitions}
 );`;
 };
 
-export const getCatalogInfo = async (catalogName, metaLakeName = 'default') => {
+export const getCatalogInfo = async (catalogName, metaLakeName = 'test') => {
   try {
     const response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}`);
     return response.data.catalog;
@@ -332,7 +332,7 @@ export const getCatalogInfo = async (catalogName, metaLakeName = 'default') => {
   }
 };
 
-export const getSchemaInfo = async (catalogName, schemaName, metaLakeName = 'default') => {
+export const getSchemaInfo = async (catalogName, schemaName, metaLakeName = 'test') => {
   try {
     const response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}/schemas/${schemaName}`);
     return response.data.schema;
