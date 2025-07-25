@@ -1,12 +1,40 @@
 # Trino Frontend
 
-一个基于 React 的前端项目，用于对接 Trino 服务，实现异构数据源查询功能。
+基于React的Trino查询前端界面，支持异构数据源管理和协同处理。
 
-## 功能特性
+## 🚀 快速开始
 
-- **元数据查询**: 展示 Trino 服务中已注册的 catalog 信息，支持树状结构浏览
-- **异构查询**: 支持创建查询任务，提供 SQL 编辑器进行查询操作
-- **响应式布局**: 左侧栏占屏幕 1/5，右侧内容区占 4/5
+### 安装依赖
+```bash
+npm install
+```
+
+### 启动项目
+
+**Windows:**
+```cmd
+npm run dev
+```
+
+**Linux/Mac:**
+```bash
+PORT=3008 npm start
+```
+
+访问：http://localhost:3008
+
+### 登录信息
+- 用户名: `test`
+- 密码: `R?p!Ex}p8V`
+- 验证码: 看页面显示
+
+## 🎯 主要功能
+
+- ✅ 异构数据源管理 - 元数据查询和树状结构浏览
+- ✅ SQL查询执行 - 支持Trino Statement API异步查询
+- ✅ 查询结果表格展示 - 支持分页和列排序
+- ✅ HTTPS自签证书支持 - 内置开发代理处理SSL问题
+- ✅ 跨平台部署支持 - Windows/Linux/Mac
 
 ## 项目结构
 
@@ -28,49 +56,44 @@ trino-frontend/
 └── README.md
 ```
 
-## 安装和运行
+## 📁 其他启动方式
 
-1. 安装依赖：
 ```bash
-npm install
+# 构建项目
+npm run build
+
+# 生产模式服务器  
+npm run serve
+
+# 带CORS代理模式
+npm run proxy
 ```
 
-2. 配置环境变量：
-```bash
-cp .env.example .env
+## 🔧 配置
+
+项目连接到：
+- **Gravitino API**: `http://10.177.64.21:16001`
+- **Trino API**: `https://trino-http.test.unicom.local:16000`
+
+环境变量配置 (`.env`):
+```env
+PORT=3008
+REACT_APP_TRINO_BASE_URL=https://trino-http.test.unicom.local:16000
+REACT_APP_TRINO_USERNAME=admin
+REACT_APP_TRINO_PASSWORD=rs{=uzW$UZ4v{BR!
 ```
 
-3. 启动开发服务器：
-```bash
-npm start
-```
+## 🛠️ 技术栈
 
-## 环境配置
+- **前端**: React 18 + Ant Design + Axios
+- **构建**: Create React App + Webpack
+- **代理**: http-proxy-middleware (开发环境)
+- **部署**: Node.js HTTP Server (生产环境)
 
-在 `.env` 文件中配置后端 API 地址：
+## 📖 使用说明
 
-```
-REACT_APP_API_BASE_URL=http://localhost:8080
-```
+1. **元数据查询**: 点击左侧图标浏览catalog/schema/table结构
+2. **SQL查询**: 创建查询任务，在编辑器中执行SQL语句
+3. **结果展示**: 支持表格分页展示查询结果
 
-## 后端 API 接口
-
-项目需要后端提供以下 API 接口：
-
-- `GET /api/catalogs` - 获取所有 catalog
-- `GET /api/catalogs/{catalog}/schemas` - 获取指定 catalog 的 schema
-- `GET /api/catalogs/{catalog}/schemas/{schema}/tables` - 获取指定 schema 的表
-- `GET /api/catalogs/{catalog}/schemas/{schema}/tables/{table}` - 获取表详情
-- `POST /api/query` - 执行 SQL 查询
-
-## 技术栈
-
-- React 18
-- Ant Design (UI 组件库)
-- Axios (HTTP 客户端)
-- CSS3 (样式)
-
-## 使用说明
-
-1. **元数据查询**：点击左侧的"元数据查询"图标，在树状结构中浏览 catalog、schema 和表，点击表名可在右侧查看表详情
-2. **异构查询**：点击左侧的"异构查询"图标，点击"新建查询任务"按钮创建查询任务，在右侧 SQL 编辑器中编写查询语句
+详细启动说明请查看 [STARTUP.md](./STARTUP.md)
