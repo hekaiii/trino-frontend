@@ -92,7 +92,7 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(PROXY_PORT, '0.0.0.0', () => {
-  console.log(`CORS Proxy server running on http://0.0.0.0:${PROXY_PORT}`);
+server.listen(PROXY_PORT, () => {
+  console.log(`CORS Proxy server running on http://localhost:${PROXY_PORT}`);
   console.log(`Proxying requests to http://${GRAVITINO_HOST}:${GRAVITINO_PORT}`);
 });
