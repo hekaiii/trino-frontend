@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Bash(start-with-proxy.bat)",
+      "Bash(cmd:*)",
+      "Bash(start:*)",
+      "Bash(powershell:*)",
+      "Bash(npm start)",
+      "Bash(taskkill:*)",
+      "Bash(set PORT=3000)",
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx cross-env PORT=3008 react-scripts start)",
+      "Bash(set PORT=3008)",
+      "Bash(del:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)"
+    ],
+    "deny": []
+  }
+}
