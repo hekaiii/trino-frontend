@@ -6,17 +6,17 @@
     <modelVersion>4.0.0</modelVersion>
     
     <!-- 项目基本信息 -->
-    <groupId>com.queryu</groupId>
-    <artifactId>trino-frontend-platform</artifactId>
+    <groupId>com.unidatax</groupId>
+    <artifactId>unidatax-platform</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
     
-    <name>Trino Frontend Platform</name>
-    <description>基于Spring Boot和React的Trino异构数据查询平台</description>
+    <name>UnidataX Platform</name>
+    <description>基于Spring Boot和React的UnidataX异构数据查询平台</description>
     
     <!-- 子模块 -->
     <modules>
-        <module>trino-backend</module>
+        <module>unidatax-backend</module>
     </modules>
     
     <!-- 属性配置 -->
@@ -33,7 +33,7 @@
         <!-- 前端构建配置 -->
         <node.version>v18.17.0</node.version>
         <npm.version>9.6.7</npm.version>
-        <frontend.working.directory>${project.basedir}/trino-web</frontend.working.directory>
+        <frontend.working.directory>${project.basedir}/unidatax-web</frontend.working.directory>
         
         <!-- 数据库版本 -->
         <mysql.version>8.0.33</mysql.version>
@@ -150,7 +150,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.basedir}/trino-backend/src/main/resources/static</outputDirectory>
+                            <outputDirectory>${project.basedir}/unidatax-backend/src/main/resources/static</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${frontend.working.directory}/build</directory>

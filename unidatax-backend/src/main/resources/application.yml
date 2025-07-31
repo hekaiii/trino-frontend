@@ -1,0 +1,97 @@
+spring:
+  profiles:
+    active: dev
+  
+  # 应用配置
+  application:
+    name: unidatax-backend
+  
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/trino_frontend_dev?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: root
+    password: hekaig24
+    
+  # MyBatis-Plus配置
+  sql:
+    init:
+      mode: always
+    
+  # Redis配置(可选，用于Session管理)
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 6000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+    
+  # 服务器配置
+  server:
+    port: 18081
+    servlet:
+      context-path: /
+      
+  # 静态资源配置
+  mvc:
+    static-path-pattern: /**
+  web:
+    resources:
+      static-locations: classpath:/static/
+      
+# 日志配置
+# MyBatis-Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+logging:
+  level:
+    com.queryu: debug
+    org.springframework.web: info
+    com.queryu.trino.mapper: debug
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/trino-backend.log
+
+# 自定义配置
+app:
+  # JWT配置
+  jwt:
+    secret: queryuTrinoFrontendSecretKey2024ForHS512AlgorithmMustBeLongerThan512BitsAtLeast64Characters
+    expiration: 86400000 # 24小时
+    
+  # 外部API配置
+  external:
+    gravitino:
+      url: http://10.177.64.21:16001
+      timeout: 30000
+    trino:
+      url: https://trino-http.test.unicom.local:16000
+      username: admin
+      password: rs{=uzW$UZ4v{BR!
+      timeout: 60000
+
+# Actuator监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
