@@ -103,7 +103,7 @@ const App = () => {
       const updatedTask = await taskApi.updateTask(currentTask.id, {
         ...currentTask,
         sqlContent: sql,
-        status: 'SUCCESS'
+        status: 'COMPLETED'
       });
       setCurrentTask(updatedTask);
       

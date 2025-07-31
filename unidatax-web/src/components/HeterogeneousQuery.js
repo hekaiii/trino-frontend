@@ -109,7 +109,7 @@ const HeterogeneousQuery = () => {
       'DRAFT': { color: 'default', text: '草稿' },
       'SAVED': { color: 'blue', text: '已保存' },
       'RUNNING': { color: 'processing', text: '运行中' },
-      'SUCCESS': { color: 'success', text: '成功' },
+      'COMPLETED': { color: 'success', text: '已完成' },
       'FAILED': { color: 'error', text: '失败' }
     };
     
