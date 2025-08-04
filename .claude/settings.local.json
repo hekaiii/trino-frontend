@@ -71,7 +71,8 @@
       "Bash(D:)",
       "Bash(set PORT=13000)",
       "Bash(npx:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(xcopy:*)"
     ],
     "deny": []
   }

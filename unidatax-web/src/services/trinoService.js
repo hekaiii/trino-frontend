@@ -73,8 +73,24 @@ export const executeQuery = async (sql) => {
       }
       
       try {
-        // 将HTTPS URL转换为代理URL
-        const proxyUrl = currentData.nextUri.replace('https://trino-http.test.unicom.local:16000', '/trino');
+        // 将HTTPS URL转换为代理URL - 支持多种URL格式
+        let proxyUrl = currentData.nextUri;
+        
+        // 处理各种可能的Trino服务器URL格式
+        if (proxyUrl.startsWith('https://trino-http.test.unicom.local:16000')) {
+          proxyUrl = proxyUrl.replace('https://trino-http.test.unicom.local:16000', '/trino');
+        } else if (proxyUrl.startsWith('https://10.177.80.163:16000')) {
+          proxyUrl = proxyUrl.replace('https://10.177.80.163:16000', '/trino');
+        } else if (proxyUrl.startsWith('https://10.177.80.163')) {
+          // 处理缺少端口号的情况，添加端口号后再转换
+          proxyUrl = proxyUrl.replace('https://10.177.80.163', '/trino');
+        } else if (proxyUrl.startsWith('https://')) {
+          // 通用HTTPS URL处理，提取路径部分
+          const url = new URL(proxyUrl);
+          proxyUrl = '/trino' + url.pathname + url.search;
+        }
+        
+        console.log('Original nextUri:', currentData.nextUri);
         console.log('Using proxy URL:', proxyUrl);
         
         const nextResponse = await axios.get(proxyUrl, {
