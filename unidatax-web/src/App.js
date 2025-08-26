@@ -4,6 +4,7 @@ import { Table, Typography, Input, Button, message, Alert, Spin } from 'antd';
 import MetadataQuery from './components/MetadataQuery';
 import HeterogeneousQuery from './components/HeterogeneousQuery';
 import Login from './components/Login';
+import S3FileViewer from './components/S3FileViewer';
 import { taskApi, authApi } from './services/apiService';
 import { executeQuery } from './services/trinoService';
 
@@ -15,11 +16,11 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [activeFunction, setActiveFunction] = useState('metadata');
   const [selectedTable, setSelectedTable] = useState(null);
+  const [selectedFileset, setSelectedFileset] = useState(null);
   const [currentTask, setCurrentTask] = useState(null);
   const [sql, setSql] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [queryResults, setQueryResults] = useState(null);
-  const [queryLoading, setQueryLoading] = useState(false);
   const [queryError, setQueryError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -47,6 +48,12 @@ const App = () => {
 
     const handleTableSelect = (event) => {
       setSelectedTable(event.detail);
+      setSelectedFileset(null); // 清除fileset选择
+    };
+
+    const handleFilesetSelect = (event) => {
+      setSelectedFileset(event.detail);
+      setSelectedTable(null); // 清除table选择
     };
 
     const handleNewQueryTask = (event) => {
@@ -57,10 +64,12 @@ const App = () => {
 
     checkLoginStatus();
     window.addEventListener('tableSelected', handleTableSelect);
+    window.addEventListener('filesetSelected', handleFilesetSelect);
     window.addEventListener('newQueryTask', handleNewQueryTask);
 
     return () => {
       window.removeEventListener('tableSelected', handleTableSelect);
+      window.removeEventListener('filesetSelected', handleFilesetSelect);
       window.removeEventListener('newQueryTask', handleNewQueryTask);
     };
   }, []);
@@ -263,6 +272,32 @@ const App = () => {
   }
 
   const renderTableDetails = () => {
+    // 如果选择了S3 fileset，显示S3对象存储详情
+    if (selectedFileset && selectedFileset.isS3) {
+      const bucketName = selectedFileset.s3Config?.bucketName || '未知存储桶';
+      return (
+        <div style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <Title level={2} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <DatabaseOutlined style={{ color: '#FF9900' }} />
+              S3对象存储详情
+              <Text style={{ color: '#666', fontWeight: 'normal', fontSize: '16px' }}>
+                [{bucketName}]
+              </Text>
+            </Title>
+          </div>
+          <S3FileViewer
+            catalog={selectedFileset.catalog}
+            schema={selectedFileset.schema}
+            fileset={selectedFileset.fileset}
+            s3Config={selectedFileset.s3Config}
+            metalake="test"
+          />
+        </div>
+      );
+    }
+
+    // 如果没有选择表，显示提示信息
     if (!selectedTable) {
       return (
         <div>
@@ -272,6 +307,7 @@ const App = () => {
       );
     }
 
+    // 显示传统表格详情
     const columns = [
       {
         title: '字段名',

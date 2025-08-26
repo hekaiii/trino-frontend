@@ -1,0 +1,69 @@
+-- H2 数据库初始化脚本
+
+-- 用户表
+CREATE TABLE IF NOT EXISTS t_user (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    salt VARCHAR(32),
+    email VARCHAR(100) UNIQUE,
+    real_name VARCHAR(50),
+    phone VARCHAR(20),
+    status TINYINT NOT NULL DEFAULT 1,
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+    last_login_time TIMESTAMP,
+    last_login_ip VARCHAR(50),
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT,
+    remark VARCHAR(500)
+);
+
+-- 查询任务表
+CREATE TABLE IF NOT EXISTS t_query_task (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    task_name VARCHAR(100) NOT NULL,
+    sql_content CLOB,
+    description VARCHAR(500),
+    user_id BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+    datasource_type VARCHAR(20),
+    target_catalog VARCHAR(100),
+    target_schema VARCHAR(100),
+    target_table VARCHAR(100),
+    execution_result CLOB,
+    error_message CLOB,
+    execution_start_time TIMESTAMP,
+    execution_end_time TIMESTAMP,
+    execution_duration BIGINT,
+    is_favorite TINYINT NOT NULL DEFAULT 0,
+    tags VARCHAR(200),
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT,
+    remark VARCHAR(500),
+    CONSTRAINT fk_query_task_user FOREIGN KEY (user_id) REFERENCES t_user(id) ON DELETE CASCADE
+);
+
+-- 插入默认管理员用户（密码: Admin@2024）
+MERGE INTO t_user (username, password, salt, email, real_name, role, status, remark) 
+KEY(username) 
+VALUES ('admin', '$2a$12$rQZ.X8Z8Z8Z8Z8Z8Z8Z8ZeO8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z8Z', 'defaultSalt12345', 'admin@queryu.com', '系统管理员', 'ADMIN', 1, '系统默认管理员账户');
+
+-- 插入测试用户（密码: Test@123）
+MERGE INTO t_user (username, password, salt, email, real_name, role, status, remark) 
+KEY(username) 
+VALUES ('test', '$2a$12$testPasswordHash123456789012345678901234567890123456789', 'testSalt1234567', 'test@queryu.com', '测试用户', 'USER', 1, '测试用户账户');
+
+-- 创建索引
+CREATE INDEX IF NOT EXISTS idx_username ON t_user(username);
+CREATE INDEX IF NOT EXISTS idx_email ON t_user(email);
+CREATE INDEX IF NOT EXISTS idx_status ON t_user(status);
+CREATE INDEX IF NOT EXISTS idx_user_create_time ON t_user(create_time);
+
+CREATE INDEX IF NOT EXISTS idx_task_user_id ON t_query_task(user_id);
+CREATE INDEX IF NOT EXISTS idx_task_name ON t_query_task(task_name);
+CREATE INDEX IF NOT EXISTS idx_task_status ON t_query_task(status);
+CREATE INDEX IF NOT EXISTS idx_task_create_time ON t_query_task(create_time);

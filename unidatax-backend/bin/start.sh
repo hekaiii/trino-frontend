@@ -43,13 +43,14 @@ check_environment() {
     fi
     
     # 检查Java版本
-    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-    if [ "$JAVA_VERSION" -lt "8" ]; then
-        log_error "Java版本过低，需要Java 8或更高版本"
-        exit 1
-    fi
-    
-    log_success "Java环境检查通过: $(java -version 2>&1 | head -n 1)"
+    JAVA_VERSION=$(java -version 2>&1 | head -n 1 | awk -F'"' '{print $2}')
+    case "$JAVA_VERSION" in
+        1.8*|9*|1[0-9]*|[2-9][0-9]*) 
+            log_success "Java版本检查通过: $JAVA_VERSION" ;;
+        *)
+            log_error "Java版本过低，需要Java 8或更高版本，当前版本: $JAVA_VERSION"
+            exit 1 ;;
+    esac
     
     # 检查端口占用
     if netstat -tlnp 2>/dev/null | grep -q ":18082"; then

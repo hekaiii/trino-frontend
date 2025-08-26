@@ -1,8 +1,12 @@
 
 import axios from 'axios';
+import { getS3Schemas, getS3Filesets } from './gravitinoS3Service';
+
+// Cache for catalog information
+const catalogCache = new Map();
 
 // 直接连接Gravitino服务器，已解决CORS问题
-const GRAVITINO_BASE_URL = 'http://10.177.64.21:16001';
+const GRAVITINO_BASE_URL = process.env.REACT_APP_GRAVITINO_URL || 'http://localhost:8090';  // 使用环境变量或默认本地地址
 
 const gravitinoApi = axios.create({
   baseURL: GRAVITINO_BASE_URL,
@@ -67,15 +71,16 @@ export const getCatalogs = async (metaLakeName = 'test') => {
   try {
     console.log(`Fetching catalogs from Gravitino API for metalake: ${metaLakeName}`);
     
-    let response;
+    // 首先获取catalog列表
+    let listResponse;
     try {
       // 首先尝试正常的请求
-      response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs?details=true`);
+      listResponse = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs`);
     } catch (error) {
       if (error.response?.status === 406) {
         console.log('Got 406 error, trying with different Accept header...');
         // 如果出现406错误，尝试使用不同的Accept头
-        response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs?details=true`, {
+        listResponse = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs`, {
           headers: {
             'Accept': '*/*',
             'Content-Type': 'application/json'
@@ -86,24 +91,48 @@ export const getCatalogs = async (metaLakeName = 'test') => {
       }
     }
     
-    console.log('Gravitino catalogs response:', response.data);
+    console.log('Gravitino catalogs response:', listResponse.data);
     
-    if (response.data && response.data.code === 0) {
-      let catalogs = [];
+    if (listResponse.data && listResponse.data.code === 0) {
+      let catalogNames = [];
       
       // 处理catalogs数组格式
-      if (response.data.catalogs && Array.isArray(response.data.catalogs)) {
-        catalogs = response.data.catalogs.map(catalog => catalog.name);
+      if (listResponse.data.catalogs && Array.isArray(listResponse.data.catalogs)) {
+        catalogNames = listResponse.data.catalogs.map(catalog => catalog.name);
       }
       // 处理identifiers数组格式 (新的API格式)
-      else if (response.data.identifiers && Array.isArray(response.data.identifiers)) {
-        catalogs = response.data.identifiers.map(identifier => identifier.name);
+      else if (listResponse.data.identifiers && Array.isArray(listResponse.data.identifiers)) {
+        catalogNames = listResponse.data.identifiers.map(identifier => identifier.name);
       }
       
-      console.log('Processed catalogs:', catalogs);
-      return catalogs;
+      // 获取每个catalog的详细信息
+      const catalogsWithDetails = await Promise.all(
+        catalogNames.map(async (catalogName) => {
+          try {
+            const details = await getCatalogInfo(catalogName, metaLakeName);
+            return {
+              name: catalogName,
+              type: details?.type || 'unknown',
+              provider: details?.provider || 'unknown',
+              properties: details?.properties || {}
+            };
+          } catch (error) {
+            console.warn(`Failed to get details for catalog ${catalogName}:`, error);
+            // 如果获取详情失败，返回基本信息
+            return {
+              name: catalogName,
+              type: 'unknown',
+              provider: 'unknown',
+              properties: {}
+            };
+          }
+        })
+      );
+      
+      console.log('Processed catalogs with details:', catalogsWithDetails);
+      return catalogsWithDetails;
     } else {
-      console.warn('Unexpected catalogs API response format:', response.data);
+      console.warn('Unexpected catalogs API response format:', listResponse.data);
       // 如果API响应格式不对，抛出错误而不是返回fallback数据
       throw new Error('Gravitino服务返回了无效的数据格式，请检查服务配置');
     }
@@ -150,12 +179,50 @@ export const getSchemas = async (catalogName, metaLakeName = 'test') => {
   try {
     console.log(`Fetching schemas for catalog: ${catalogName} from Gravitino API`);
     
+    // 先获取catalog详情以判断是否为S3类型
+    const catalogInfo = await getCatalogInfo(catalogName, metaLakeName);
+    const isS3 = catalogInfo?.type === 'fileset' && 
+                 (catalogInfo?.provider === 's3' || 
+                  (catalogInfo?.provider === 'hadoop' && catalogInfo?.properties?.['filesystem-providers'] === 's3') ||
+                  catalogInfo?.properties?.['s3-endpoint'] !== undefined);
+    
+    // 检查是否为S3类型的catalog，使用S3专门的API
+    if (isS3) {
+      console.log(`S3 catalog detected: ${catalogName}, using S3 schemas API`);
+      
+      // 从catalog属性中提取S3配置
+      const { extractS3ConfigFromCatalog } = await import('../config/s3Config');
+      const s3Config = extractS3ConfigFromCatalog(catalogInfo);
+      
+      if (!s3Config || !s3Config.bucketName) {
+        console.warn(`Invalid S3 configuration for catalog: ${catalogName}, missing bucket name`);
+        return ['bucket'];
+      }
+      
+      console.log(`Using S3 config:`, s3Config);
+      
+      try {
+        // 调用S3专门的schemas API
+        const schemas = await getS3Schemas(catalogName, s3Config, metaLakeName);
+        return schemas.length > 0 ? schemas : ['bucket'];
+      } catch (s3Error) {
+        console.error('Error fetching S3 schemas:', s3Error);
+        // 如果S3 API不可用或失败，返回默认的bucket schema
+        console.warn(`S3 API not available for catalog ${catalogName}, using default bucket schema`);
+        return ['bucket'];
+      }
+    }
+    
     let response;
     try {
       // 首先尝试正常的请求
       response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}/schemas`);
     } catch (error) {
-      if (error.response?.status === 406) {
+      if (error.response?.status === 405 || error.response?.data?.message?.includes('Catalog does not support schema operations')) {
+        console.log(`Got 405 or unsupported operation for catalog ${catalogName}, likely S3 type`);
+        // 如果出现405错误或不支持schema操作，可能是S3类型catalog，返回默认bucket
+        return ['bucket'];
+      } else if (error.response?.status === 406) {
         console.log('Got 406 error, trying with different Accept header...');
         // 如果出现406错误，尝试使用不同的Accept头
         response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}/schemas`, {
@@ -197,6 +264,12 @@ export const getSchemas = async (catalogName, metaLakeName = 'test') => {
       status: error.response?.status
     });
     
+    // 特殊处理405错误，可能是S3类型catalog
+    if (error.response?.status === 405) {
+      console.log(`405 error for catalog ${catalogName}, treating as S3 type`);
+      return ['bucket'];
+    }
+    
     // 根据错误类型提供友好的错误信息
     let friendlyMessage = `获取Catalog "${catalogName}" 的Schema列表失败`;
     
@@ -221,12 +294,50 @@ export const getTables = async (catalogName, schemaName, metaLakeName = 'test') 
   try {
     console.log(`Fetching tables for catalog: ${catalogName}, schema: ${schemaName} from Gravitino API`);
     
+    // 先获取catalog详情以判断是否为S3类型
+    const catalogInfo = await getCatalogInfo(catalogName, metaLakeName);
+    const isS3 = catalogInfo?.type === 'fileset' && 
+                 (catalogInfo?.provider === 's3' || 
+                  (catalogInfo?.provider === 'hadoop' && catalogInfo?.properties?.['filesystem-providers'] === 's3') ||
+                  catalogInfo?.properties?.['s3-endpoint'] !== undefined);
+    
+    // 检查是否为S3类型的catalog，使用S3专门的filesets API
+    if (isS3) {
+      console.log(`S3 catalog detected: ${catalogName}, using S3 filesets API`);
+      
+      // 从catalog属性中提取S3配置
+      const { extractS3ConfigFromCatalog } = await import('../config/s3Config');
+      const s3Config = extractS3ConfigFromCatalog(catalogInfo);
+      
+      if (!s3Config || !s3Config.bucketName) {
+        console.warn(`Invalid S3 configuration for catalog: ${catalogName}, missing bucket name`);
+        return [];
+      }
+      
+      console.log(`Using S3 config for filesets:`, s3Config);
+      
+      try {
+        // 调用S3专门的filesets API
+        const filesets = await getS3Filesets(catalogName, schemaName, s3Config, metaLakeName);
+        console.log('Processed S3 filesets:', filesets);
+        return filesets;
+      } catch (s3Error) {
+        console.error('Error fetching S3 filesets:', s3Error);
+        console.warn(`S3 API not available for catalog ${catalogName}, returning empty filesets`);
+        return [];
+      }
+    }
+    
     let response;
     try {
       // 首先尝试正常的请求
       response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}/schemas/${schemaName}/tables`);
     } catch (error) {
-      if (error.response?.status === 406) {
+      if (error.response?.status === 405 || error.response?.data?.message?.includes('Catalog does not support')) {
+        console.log(`Got 405 or unsupported operation for catalog ${catalogName}, likely S3 type`);
+        // 如果出现405错误或不支持操作，可能是S3类型catalog，返回空数组
+        return [];
+      } else if (error.response?.status === 406) {
         console.log('Got 406 error, trying with different Accept header...');
         // 如果出现406错误，尝试使用不同的Accept头
         response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}/schemas/${schemaName}/tables`, {
@@ -267,6 +378,12 @@ export const getTables = async (catalogName, schemaName, metaLakeName = 'test') 
       response: error.response?.data,
       status: error.response?.status
     });
+    
+    // 特殊处理405错误，可能是S3类型catalog
+    if (error.response?.status === 405) {
+      console.log(`405 error for catalog ${catalogName}, returning empty array`);
+      return [];
+    }
     
     // 根据错误类型提供友好的错误信息
     let friendlyMessage = `获取Schema "${catalogName}.${schemaName}" 的表列表失败`;
@@ -378,11 +495,46 @@ ${columnDefinitions}
 
 export const getCatalogInfo = async (catalogName, metaLakeName = 'test') => {
   try {
+    // Check cache first
+    const cacheKey = `${metaLakeName}:${catalogName}`;
+    if (catalogCache.has(cacheKey)) {
+      console.log(`Using cached catalog info for ${catalogName}`);
+      return catalogCache.get(cacheKey);
+    }
+    
     const response = await gravitinoApi.get(`/api/metalakes/${metaLakeName}/catalogs/${catalogName}`);
-    return response.data.catalog;
+    const catalogInfo = response.data.catalog;
+    
+    // Cache the catalog info
+    catalogCache.set(cacheKey, catalogInfo);
+    
+    return catalogInfo;
   } catch (error) {
     console.error('Error fetching catalog info:', error);
     throw error;
+  }
+};
+
+// Get catalog type (provider) information
+export const getCatalogType = async (catalogName, metaLakeName = 'test') => {
+  try {
+    const catalogInfo = await getCatalogInfo(catalogName, metaLakeName);
+    return {
+      type: catalogInfo?.type || 'unknown',
+      provider: catalogInfo?.provider || 'unknown',
+      isS3: catalogInfo?.type === 'fileset' && 
+            (catalogInfo?.provider === 's3' || 
+             (catalogInfo?.provider === 'hadoop' && catalogInfo?.properties?.['filesystem-providers'] === 's3')),
+      properties: catalogInfo?.properties || {}
+    };
+  } catch (error) {
+    console.error(`Error getting catalog type for ${catalogName}:`, error);
+    return {
+      type: 'unknown',
+      provider: 'unknown',
+      isS3: false,
+      properties: {}
+    };
   }
 };
 

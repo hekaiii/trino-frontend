@@ -72,7 +72,23 @@
       "Bash(set PORT=13000)",
       "Bash(npx:*)",
       "Bash(timeout:*)",
-      "Bash(xcopy:*)"
+      "Bash(xcopy:*)",
+      "Bash(git push:*)",
+      "Bash(sc config:*)",
+      "Bash(TASKKILL /F /PID 28460)",
+      "Bash(TASKKILL /F /PID 19284)",
+      "Bash(TASKKILL /F /PID 35468)",
+      "Bash(set PORT=13001)",
+      "Bash(robocopy:*)",
+      "Bash(copy:*)",
+      "Bash(tar:*)",
+      "Bash(grep:*)",
+      "Bash(zip:*)",
+      "Read(/\\\\wsl.localhost\\Ubuntu\\home\\hekai\\project\\cyd\\gravitino/**)",
+      "Read(/\\\\wsl.localhost\\Ubuntu\\home\\hekai\\project\\cyd\\gravitino\\server\\src\\main\\java\\org\\apache\\gravitino\\server\\web\\rest/**)",
+      "Read(/\\\\wsl.localhost\\Ubuntu\\home\\hekai\\project\\cyd\\gravitino\\server\\src\\main\\java\\org\\apache\\gravitino\\server\\web\\rest/**)",
+      "Read(/\\\\wsl.localhost\\Ubuntu\\home\\hekai\\project\\cyd\\gravitino\\server\\src\\main\\java\\org\\apache\\gravitino\\server\\web\\rest/**)",
+      "Read(/\\\\wsl.localhost\\Ubuntu\\home\\hekai\\project\\cyd\\gravitino/**)"
     ],
     "deny": []
   }
