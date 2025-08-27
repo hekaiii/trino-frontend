@@ -12,16 +12,19 @@ import {
   Tag,
   Modal,
   Typography,
-  Input
+  Input,
+  Space
 } from 'antd';
 import { 
   FileOutlined, 
   ReloadOutlined,
   InfoCircleOutlined,
   EyeOutlined,
-  SearchOutlined
+  SearchOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import { getS3Files, previewS3File } from '../services/gravitinoS3Service';
+import FileMetadataModal from './FileMetadataModal';
 
 const { Text } = Typography;
 
@@ -35,6 +38,8 @@ const S3FileViewer = ({ catalog, schema, fileset, s3Config, metalake = 'test' })
   const [previewContent, setPreviewContent] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState(''); // 搜索关键字
+  const [metadataModalVisible, setMetadataModalVisible] = useState(false);
+  const [selectedFileForMetadata, setSelectedFileForMetadata] = useState(null);
 
   // 加载文件列表 - 直接加载所有文件
   const loadFiles = useCallback(async () => {
@@ -132,6 +137,21 @@ const S3FileViewer = ({ catalog, schema, fileset, s3Config, metalake = 'test' })
     }
   };
 
+  // 查看元数据
+  const handleViewMetadata = (file) => {
+    // 添加s3Config信息到file对象
+    const fileWithConfig = {
+      ...file,
+      s3Config: {
+        ...s3Config,
+        catalogName: catalog,
+        schemaName: schema
+      }
+    };
+    setSelectedFileForMetadata(fileWithConfig);
+    setMetadataModalVisible(true);
+  };
+
   // 格式化文件大小
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 B';
@@ -194,15 +214,26 @@ const S3FileViewer = ({ catalog, schema, fileset, s3Config, metalake = 'test' })
     {
       title: '操作',
       key: 'actions',
+      width: 180,
       render: (_, record) => (
-        <Button 
-          type="link" 
-          size="small" 
-          icon={<EyeOutlined />}
-          onClick={() => handlePreview(record)}
-        >
-          预览
-        </Button>
+        <Space size="small">
+          <Button 
+            type="link" 
+            size="small" 
+            icon={<EyeOutlined />}
+            onClick={() => handlePreview(record)}
+          >
+            预览
+          </Button>
+          <Button 
+            type="link" 
+            size="small" 
+            icon={<DatabaseOutlined />}
+            onClick={() => handleViewMetadata(record)}
+          >
+            查看元数据
+          </Button>
+        </Space>
       )
     }
   ];
@@ -405,6 +436,21 @@ const S3FileViewer = ({ catalog, schema, fileset, s3Config, metalake = 'test' })
           )}
         </Spin>
       </Modal>
+
+      {/* 文件元数据Modal */}
+      <FileMetadataModal
+        visible={metadataModalVisible}
+        onCancel={() => {
+          setMetadataModalVisible(false);
+          setSelectedFileForMetadata(null);
+        }}
+        file={selectedFileForMetadata}
+        s3Config={{
+          ...s3Config,
+          catalogName: catalog,
+          schemaName: schema
+        }}
+      />
     </div>
   );
 };

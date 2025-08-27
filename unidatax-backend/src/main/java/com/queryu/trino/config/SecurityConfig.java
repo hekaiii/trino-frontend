@@ -51,6 +51,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/actuator/health/**").permitAll()
                 // 允许静态资源和主页
                 .antMatchers("/", "/static/**", "/*.js", "/*.css", "/*.html", "/favicon.ico").permitAll()
+                // 文件元数据API允许无认证访问
+                .antMatchers("/api/file-metadata/**").permitAll()
                 // 其他所有请求需要认证
                 .anyRequest().authenticated()
             

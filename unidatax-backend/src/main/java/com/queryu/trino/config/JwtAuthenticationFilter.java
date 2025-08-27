@@ -32,15 +32,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response, 
                                     FilterChain filterChain) throws ServletException, IOException {
         
+        String requestURI = request.getRequestURI();
+        log.debug("JWT过滤器处理请求: {} {}", request.getMethod(), requestURI);
+        
         try {
+            String authHeader = request.getHeader("Authorization");
+            log.debug("Authorization头: {}", authHeader);
+            
             String token = jwtUtil.getTokenFromRequest(request);
+            log.debug("提取的token: {}", token != null ? "存在(长度:" + token.length() + ")" : "null");
             
             if (token != null && jwtUtil.validateToken(token)) {
                 String username = jwtUtil.getUsernameFromToken(token);
                 String role = jwtUtil.getRoleFromToken(token);
                 Long userId = jwtUtil.getUserIdFromToken(token);
                 
-                log.debug("JWT token验证成功 - 用户: {}, 角色: {}, ID: {}", username, role, userId);
+                log.info("JWT token验证成功 - 用户: {}, 角色: {}, ID: {}", username, role, userId);
                 
                 // 创建认证对象
                 UsernamePasswordAuthenticationToken authentication = 
@@ -57,9 +64,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 request.setAttribute("userId", userId);
                 request.setAttribute("username", username);
                 request.setAttribute("role", role);
+            } else {
+                log.debug("Token验证失败或token为空");
             }
         } catch (Exception e) {
-            log.error("JWT认证过滤器处理异常: {}", e.getMessage());
+            log.error("JWT认证过滤器处理异常: {}", e.getMessage(), e);
             SecurityContextHolder.clearContext();
         }
         

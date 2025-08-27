@@ -54,6 +54,18 @@ public class ApiResponse<T> {
     }
     
     /**
+     * 成功响应(只有消息)
+     */
+    public static ApiResponse<Object> successMessage(String message) {
+        return ApiResponse.builder()
+                .code(200)
+                .message(message)
+                .data(null)
+                .timestamp(System.currentTimeMillis())
+                .build();
+    }
+    
+    /**
      * 失败响应
      */
     public static <T> ApiResponse<T> error(String message) {
